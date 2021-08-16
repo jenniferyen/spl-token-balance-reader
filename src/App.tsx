@@ -5,8 +5,17 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Token } from './components/token';
 
 // STYLESHEETS
-import './App.css';
-import { ChakraProvider, Input } from '@chakra-ui/react';
+import { 
+  ChakraProvider, 
+  Input, 
+  IconButton, 
+  Menu, 
+  MenuButton, 
+  MenuList, 
+  MenuItem,
+} from '@chakra-ui/react';
+import { HamburgerIcon } from '@chakra-ui/icons';
+import './styles/App.css';
 
 // UTILS
 import { getTokenBalances } from './redux/actions/actionCreators';
@@ -19,14 +28,21 @@ function App() {
   const [address, setAddress] = useState<string>('');
   const [showError, setShowError] = useState<boolean>(false);
 
+  const networkState = {
+    'mainnet-beta': 'mainnet-beta',
+    'devnet': 'devnet',
+    'testnet': 'testnet'
+  }
+  const [network, setNetwork] = useState<string>('mainnet-beta');
+
   const dispatch = useDispatch();
   const tokenList = useSelector((state: any) => state.tokenList);
   const error = useSelector((state: any) => state.error);
 
   useEffect(() => {
-    dispatch(getTokenBalances(address));
+    dispatch(getTokenBalances(address, network));
     setShowError(!!error);
-  }, [address, error, dispatch]);
+  }, [address, error, network, dispatch]);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       setAddress(event.target.value);
@@ -35,21 +51,36 @@ function App() {
   return (
     <ChakraProvider>
       <div className='App'>
+        <div className='networkText'>Network: {network}</div>
+        <Menu>
+          <MenuButton 
+            as={IconButton} 
+            aria-label='Options' 
+            icon={<HamburgerIcon />} 
+            mr='24px'
+          />
+          <MenuList>
+            <MenuItem onClick={() => setNetwork(networkState['mainnet-beta'])}>mainnet-beta</MenuItem>
+            <MenuItem onClick={() => setNetwork(networkState['devnet'])}>devnet</MenuItem>
+            <MenuItem onClick={() => setNetwork(networkState['testnet'])}>testnet</MenuItem>
+          </MenuList>
+        </Menu>
+
         <Input
-          variant='filled'
+          className='inputField'
+          variant='flushed'
           placeholder='Enter a Solana wallet address'
           value={address}
           onChange={handleInputChange}
-          style={{width: '500px', padding: '12px', marginTop: '24px'}}
         />
 
         {tokenList && tokenList.map((token: any, index: any) => {
           return (
-            <Token token={token} index={index} style={{padding: '5px'}}/>
+            <Token token={token} index={index} />
           )
         })}
 
-        {address !== '' && showError && <div style={{ color: 'red' }}>{error}</div>}
+        {address !== '' && showError && <div className='errorText'>{error}</div>}
       </div>
     </ChakraProvider>
   );

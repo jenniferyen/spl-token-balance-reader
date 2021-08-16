@@ -1,0 +1,22 @@
+.App, html {
+  text-align: center;
+  background: linear-gradient(to right, #7928CA, #FF0080);
+}
+
+.inputField {
+  color: white;
+  padding: 24px;
+  max-width: 50%;
+  margin-top: 32px;
+}
+
+.networkText {
+  color: white;
+}
+
+.errorText {
+  color: white;
+  text-align: left;
+  margin-left: 25%;
+  margin-top: 12px;
+}

@@ -7,10 +7,10 @@ export interface WalletAction {
     error: any
 }
 
-export const getTokenBalances = (address: string) => {
+export const getTokenBalances = (address: string, network: string) => {
     return async (dispatch: Dispatch<WalletAction>) => {
         try {
-            const tokenList = await getTokenList(address);
+            const tokenList = await getTokenList(address, network);
             dispatch({
                 type: 'GET_TOKEN_BALANCES_SUCCESS',
                 tokens: tokenList,

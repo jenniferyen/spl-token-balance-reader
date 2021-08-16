@@ -8,7 +8,3 @@ export const SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID: PublicKey = new PublicKey(
 );
 
 export const LAMPORTS_PER_SOL = 1000000000;
-
-export const tokenPriceMap = {
-    
-}

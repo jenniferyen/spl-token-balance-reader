@@ -87,10 +87,9 @@ const getProgramAccounts = async (pubkey: PublicKey) => {
     });
 }
 
-const getTokenMap = async (walletAddress: PublicKey) => {
+const getTokenMap = async (walletAddress: PublicKey, network: string) => {
     const tokenList = await new TokenListProvider().resolve().then(tokens => {
-        // TO DO: implement nav for mainnet-beta / devnet / testnet
-        const tokenList = tokens.filterByClusterSlug('mainnet-beta').getList();
+        const tokenList = tokens.filterByClusterSlug(network).getList();
         return tokenList;
     });
     const mapToAssociatedTokenAddress = tokenList.map(async (token) => {
@@ -145,13 +144,12 @@ const markDuplicates = (validTokens: any) => {
     return markDuplicates;
 }
 
-export const getTokenList = async (address: string) => {
+export const getTokenList = async (address: string, network: string) => {
     const walletAddress = new PublicKey(address);
 
     const SOL_balance = await getBalance(walletAddress);
     const programAccounts = await getProgramAccounts(walletAddress);
-    console.log('ACCOUNTS: ', programAccounts);
-    const tokenMap = await getTokenMap(walletAddress);
+    const tokenMap = await getTokenMap(walletAddress, network);
 
     /*
      * Attributes from program_accounts:
@@ -162,7 +160,6 @@ export const getTokenList = async (address: string) => {
      */
     const mapToAssociatedTokenAddress = programAccounts.map(async (account: any) => {
         const accountData = account.account.data.parsed.info;
-        console.log(accountData);
         
         const mintAddress = new PublicKey(accountData.mint);
         const associatedTokenAddress = await findAssociatedTokenAddress(walletAddress, mintAddress);
@@ -171,7 +168,6 @@ export const getTokenList = async (address: string) => {
         const tokenObj = {
             // IMPORTANT: address here refers to associatedTokenAddress
             address: associatedTokenAddress.toBase58(),
-            // TO DO: fix lamports issue
             amount: accountData.tokenAmount.amount / Math.pow(10, accountData.tokenAmount.decimals),
             chainId: assignChainId(currToken),
             logoURI: currToken?.logoURI,
@@ -187,6 +183,7 @@ export const getTokenList = async (address: string) => {
     })
 
     // Manually adding Solana to the token list
+    // TO DO: fix Solana in mainnet-beta / devnet / testnet
     tokenList.push({
         address: walletAddress.toBase58(),
         amount: SOL_balance,
