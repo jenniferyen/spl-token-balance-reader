@@ -1,9 +1,11 @@
 # SPL Token Balance Reader
 
+<img width="1792" alt="Screen Shot 2021-08-19 at 2 06 29 AM" src="https://user-images.githubusercontent.com/37031442/130016533-7bfe3e83-bc22-46a9-851c-ed6503d1afb3.png">
+
 ## How to run the program
 1. In the root of the project directory, run: 
 ### `npm start`
-2. In the server directory, start the server:
+2. In the server directory (`spl-token-balance-reader/src/server/`), start the server:
 ### `node server.js` 
 
 Note: The server is used to query the CoinMarketCap API to get the latest price of Solana. If this is not needed (my API key has limited credits), you do not need to start the server and the Solana balance will show up as $0.00. 
