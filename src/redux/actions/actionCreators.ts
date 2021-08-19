@@ -1,10 +1,11 @@
 import { Dispatch } from 'react';
 import { getTokenList } from '../../utils';
+import { TokenType } from '../../types';
 
 export interface WalletAction {
     type: string,
-    tokens: any,
-    error: any
+    tokens: TokenType[],
+    error: string
 }
 
 export const getTokenBalances = (address: string, network: string) => {
@@ -14,7 +15,7 @@ export const getTokenBalances = (address: string, network: string) => {
             dispatch({
                 type: 'GET_TOKEN_BALANCES_SUCCESS',
                 tokens: tokenList,
-                error: null,
+                error: '',
             });
         } catch (err) {
             // Hide tokens

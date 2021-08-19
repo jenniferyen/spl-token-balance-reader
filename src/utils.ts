@@ -7,8 +7,9 @@ import {
     SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID,
     LAMPORTS_PER_SOL,
 } from './const';
+import { TokenType, ProgramAccount } from './types';
 
-const getBalance = async (pubkey: PublicKey) => {
+export const getSolanaBalance = async (address: string) => {
     return await fetch (SOLANA_RPC_ENDPOINT, {
         method: 'POST',
         headers: {
@@ -19,12 +20,12 @@ const getBalance = async (pubkey: PublicKey) => {
             'jsonrpc': '2.0',
             'id': 1,
             'method': 'getBalance',
-            'params': [pubkey.toBase58()]
+            'params': [address]
         })
     }).then(res => {
         return res.json();
     }).then(balance => {
-        console.log('SOL_BALANCE: ', balance.result.value / LAMPORTS_PER_SOL);
+        // console.log('SOL_BALANCE: ', balance.result.value / LAMPORTS_PER_SOL);
         return balance.result.value / LAMPORTS_PER_SOL;
     }).catch(error => {
         console.log('Error fetching data: ', error);
@@ -115,21 +116,14 @@ const getTokenMap = async (walletAddress: PublicKey, network: string) => {
     return tokenMap;
 }
 
-const assignChainId = (token: any) => {
-    if (token?.chainId) {
-        return token.chainId;
-    }
-    return -1;
-}
-
-const markDuplicates = (validTokens: any) => {
+const markDuplicates = (validTokens: TokenType[]) => {
     const lookup = validTokens.reduce((a: any, e: any) => {
         a[e.address] = ++a[e.address] || 0;
         return a;
       }, {});
 
-    const duplicatesList = validTokens.filter((e: any) => lookup[e.address]);
-    const markDuplicates = validTokens.map((token: any) => {
+    const duplicatesList = validTokens.filter((e: TokenType) => lookup[e.address]);
+    const markDuplicates = validTokens.map((token: TokenType) => {
         if (duplicatesList.includes(token)) {
             return {
                 ...token,
@@ -146,19 +140,18 @@ const markDuplicates = (validTokens: any) => {
 
 export const getTokenList = async (address: string, network: string) => {
     const walletAddress = new PublicKey(address);
-
-    const SOL_balance = await getBalance(walletAddress);
     const programAccounts = await getProgramAccounts(walletAddress);
+    // console.log('PROGRAM_ACCOUNTS: ', programAccounts);
     const tokenMap = await getTokenMap(walletAddress, network);
 
     /*
-     * Attributes from program_accounts:
+     * Attributes we need from programAccounts:
      * account data, mint address, token
      * 
-     * Attributes from token:
+     * Attributes we need from tokenMap:
      * chainId, logoURI, name, symbol 
      */
-    const mapToAssociatedTokenAddress = programAccounts.map(async (account: any) => {
+    const mapToAssociatedTokenAddress = programAccounts.map(async (account: ProgramAccount) => {
         const accountData = account.account.data.parsed.info;
         
         const mintAddress = new PublicKey(accountData.mint);
@@ -168,38 +161,29 @@ export const getTokenList = async (address: string, network: string) => {
         const tokenObj = {
             // IMPORTANT: address here refers to associatedTokenAddress
             address: associatedTokenAddress.toBase58(),
-            amount: accountData.tokenAmount.amount / Math.pow(10, accountData.tokenAmount.decimals),
-            chainId: assignChainId(currToken),
+            amount: parseInt(accountData.tokenAmount.amount) / Math.pow(10, accountData.tokenAmount.decimals),
+            chainId: currToken?.chainId,
             logoURI: currToken?.logoURI,
             name: currToken?.name,
             symbol: currToken?.symbol,
             tags: currToken?.tags,
         }
-        return tokenObj;
+        return tokenObj as TokenType;
     });
 
     const tokenList = await Promise.all(mapToAssociatedTokenAddress).then(result => {
-        return result;
+        return result as TokenType[];
     })
 
-    // Manually adding Solana to the token list
-    // TO DO: fix Solana in mainnet-beta / devnet / testnet
-    tokenList.push({
-        address: walletAddress.toBase58(),
-        amount: SOL_balance,
-        chainId: Number.MAX_VALUE,
-        logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/solana/info/logo.png',
-        name: 'Solana',
-        symbol: 'SOL',
-        tags: ['Solana', 'SOL']
-    });
-
-    let validTokens = tokenList.filter((token: any) => token.chainId > -1);
-    validTokens.sort((t1: any, t2: any) => t2.amount - t1.amount);
-
+    let validTokens = tokenList.filter((token: TokenType) => token.chainId);
+    validTokens.sort((t1: TokenType, t2: TokenType) => t2.amount - t1.amount);
     validTokens = markDuplicates(validTokens);
     // There are 4 duplicates: USD Coin, Serum, The Convergence War, and Bonfida
+
+    // These tokens only have associatedAccountAddress and amount
+    let undefinedTokens = tokenList.filter((token: TokenType) => !token.chainId);
+    // console.log('UNDEFINED_TOKENS: ', undefinedTokens);
     
-    console.log('TOKEN_LIST: ', validTokens);
-    return validTokens;
+    // console.log('TOKEN_LIST: ', validTokens);
+    return validTokens as TokenType[];
 }
