@@ -127,7 +127,7 @@ const markDuplicates = (validTokens: TokenType[]) => {
         if (duplicatesList.includes(token)) {
             return {
                 ...token,
-                duplicate: '*There are multiple accounts associated with this token.',
+                duplicate: '*There are multiple accounts associated with this mint address.',
             }
         } else {
             return {

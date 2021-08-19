@@ -1,70 +1,69 @@
-# Getting Started with Create React App
+# SPL Token Balance Reader
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## How to run the program
+1. In the root of the project directory, run: 
+### `npm start`
+2. In the server directory, start the server:
+### `node server.js` 
 
-## Available Scripts
+Note: The server is used to query the CoinMarketCap API to get the latest price of Solana. If this is not needed (my API key has limited credits), you do not need to start the server and the Solana balance will show up as $0.00. 
 
-In the project directory, you can run:
+The program will open in the browser at [http://localhost:3000](http://localhost:3000).
 
-### `yarn start`
+3. This is the wallet address I used for most of my testing:
+### `26qv4GCcx98RihuK3c4T6ozB3J7L6VwCuFVc7Ta2A3Uo`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Features
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+### Displays the Solana balance and all token balances belonging to specified wallet address 
 
-### `yarn test`
+- Users can input a Solana address. If the address is valid, the relevant balances will appear. If the address is NOT valid, an error message will appear. 
+- The Solana balance comes with the USD equivalent. 
+- The token cards display the name, balance, and symbol of the token. 
+- The token list updates live as the address in the input changes. 
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Can toggle between networks (mainnet-beta / devnet / testnet) and see which tokens exist in each
+- The Solana balance is queried from mainnet-beta and will only show up under mainnet-beta.
+- Relevant tokens in each network will display when you toggle between networks.
 
-### `yarn build`
+### Can easily connect to and disconnect from Phantom wallet
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Implementation decisions
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Using Chakra UI
+- I've used Chakra UI a bit before and liked how I could align things easily using specialized components like `<Flex>` (acts like a flex box), `<HStack>` and `<VStack>` (act like a horizontal stack and vertical stack, respectively), etc. I used this library to abstract some of that away and not worry about CSS too much in my limited time.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Using `findAssociatedTokenAddress` endpoint and displaying text to indicate that some token accounts belong to the same mint 
+- I noticed that there are a few program accounts with the same mint address so they appear to be duplicate tokens in the token list. 
+ - Because of this, I kept track [associatedTokenAddress](https://spl.solana.com/associated-token-account) instead of mint address under the hood. This can be seen in my tokenMap and final tokenList object. 
+   - According to the documentation, "This program introduces a way to deterministically derive a token account key from a user's main System account address and a token mint address, allowing the user to create a main token account for each token he owns."
+- I displayed the multiple program accounts because they are still valid program accounts. However, I added a prop indicating that there are multiple accounts associated with that mint address.
 
-### `yarn eject`
+### Combining token data from Solana's token registry with program account data from `getProgramAccounts`
+- I used [Solana's token registry](https://github.com/solana-labs/token-list) to get metadata such as icon image for each token. I created a mapping from associatedAccountAddress to token object to make it easy to look up a specific token.
+- While the token registry had relevant token metadata, each program account had information about tokenAmount. I combined both objects and created a new TokenType with fields I needed from both places. 
+ - This was more intuitive for me than using the [`getTokenAccountsByOwner`](https://docs.solana.com/developing/clients/jsonrpc-api#gettokenaccountsbyowner) endpoint which requires a mint address parameter for each token.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+### Hiding tokens that are not in Solana's token registry
+- In my implementation, there are tokens that are not in Solana's token registry that only have an account address and a balance. For now, I did not display these tokens but I considered creating a new component for these "undefined tokens."
+  - In `src/utils.ts`, you can see this undefined token list by uncommenting my console log on line 185.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Creating a separate component for Solana balance
+- I wanted to style Solana differently than the other token cards (I didn't get to this) and make sure it was the first balance shown by placing its component before the other tokens. 
+- By separating Solana, it was easier to show/hide the Solana component depending on what network the user selects. The Solana balance is queried from mainnet-beta and will only show up under mainnet-beta.  
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### Setting up a server to use CoinMarketCap API
+- Avoid CORS errors.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+## If I had more time
+This project definitely has its flaws and limitations but I had a lot of fun along the way!
 
-## Learn More
+If I had more time, I would focus on:
+1. More thorough testing and mocking fetches
+2. More responsive styling for different breakpoints and browsers
+3. More thorough TypeScript typing 
+4. Refactoring code and moving hard-coded constants into shared variables
+5. A way to filter or search for tokens
+6. More information about each token when you click on individual token cards
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Thank you Phantom team! :)

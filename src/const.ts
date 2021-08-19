@@ -8,3 +8,5 @@ export const SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID: PublicKey = new PublicKey(
 );
 
 export const LAMPORTS_PER_SOL = 1000000000;
+
+export const TEST_WALLET_ADDRESS = '26qv4GCcx98RihuK3c4T6ozB3J7L6VwCuFVc7Ta2A3Uo';
