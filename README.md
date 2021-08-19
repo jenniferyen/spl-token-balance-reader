@@ -2,6 +2,8 @@
 
 <img width="1792" alt="Screen Shot 2021-08-19 at 2 06 29 AM" src="https://user-images.githubusercontent.com/37031442/130016533-7bfe3e83-bc22-46a9-851c-ed6503d1afb3.png">
 
+## Video walkthrough: coming soon!
+
 ## How to run the program
 1. In the root of the project directory, run: 
 ### `npm start`
@@ -65,7 +67,8 @@ If I had more time, I would focus on:
 2. More responsive styling for different breakpoints and browsers
 3. More thorough TypeScript typing 
 4. Refactoring code and moving hard-coded constants into shared variables
-5. A way to filter or search for tokens
-6. More information about each token when you click on individual token cards
+5. A better way to order token balances
+6. A way to filter or search for tokens
+7. More information about each token when you click on individual token cards
 
 ## Thank you Phantom team! :)
